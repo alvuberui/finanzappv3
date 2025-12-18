@@ -1,0 +1,52 @@
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - RemoveRequestHeader=Cookie
+          routes:
+            - id: movement-service
+              uri: http://movement-service:8080
+              predicates:
+                - Path=/movement/**
+              filters:
+                - StripPrefix=1
+            - id: statistic-service
+              uri: http://statistic-service:8080
+              predicates:
+                - Path=/statistic/**
+              filters:
+                - StripPrefix=1
+            - id: tag-service
+              uri: http://tag-service:8080
+              predicates:
+                - Path=/tag/**
+              filters:
+                - StripPrefix=1
+            - id: user-service
+              uri: http://user-service:8080
+              predicates:
+                - Path=/user/**
+              filters:
+                - StripPrefix=1
+            - id: auth-service
+              uri: http://auth-service:8080
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # En red Docker, usa el nombre del servicio de Keycloak:
+          issuer-uri: http://keycloak:8080/realms/finanzapp
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
