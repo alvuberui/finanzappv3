@@ -1,7 +1,6 @@
 package com.finanzapp.user.service;
 
-import com.finanzapp.user.service.domain.BooleanResponse;
-import com.finanzapp.user.service.domain.CreateUserRequest;
+import com.finanzapp.user.service.domain.*;
 
 public interface UserService {
 
@@ -19,4 +18,21 @@ public interface UserService {
      * @param request the request containing user details
      */
     void createUser(CreateUserRequest request);
+
+    /**
+     * Retrieves the ideal percentage allocation for the user with the given email.
+     * @param email the email of the user
+     * @return the ideal percentage response
+     */
+    IdealPercentageResponse getIdealPercentage(String email);
+
+    /**
+     * Updates the user information based on the provided request data.
+     * @param user the request containing updated user details
+     * @param email the email of the user to update
+     * @return the updated user
+     */
+    User updateUser(UpdateUserRequest user, String email);
+
+    User getUserByEmail(String email);
 }

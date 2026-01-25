@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5435/userdb
-    username: useruser
-    password: authpass
+    url: jdbc:postgresql://localhost:5434/movementsdb
+    username: movementsuser
+    password: movementspass
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -17,10 +17,13 @@ spring:
           issuer-uri: http://localhost:8080/realms/finanzapp
 
 server:
-  port: 8085
+  port: 8082
   servlet:
-    context-path: /user
+    context-path: /movement
 
 
-
-
+services:
+  users:
+    base-url: http://localhost:8085
+  tags:
+    base-url: http://localhost:8084
