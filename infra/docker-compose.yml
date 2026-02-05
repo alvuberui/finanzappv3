@@ -101,7 +101,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: local
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     restart: unless-stopped
     networks: [internal]
@@ -114,7 +114,7 @@ services:
   user:
     image: finanzapp-user:local
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: local
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     restart: unless-stopped
     networks: [internal]
@@ -124,7 +124,7 @@ services:
   movements:
     image: finanzapp-movements:local
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: local
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     restart: unless-stopped
     networks: [internal]
@@ -134,7 +134,7 @@ services:
   tags:
     image: finanzapp-tags:local
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: local
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
     restart: unless-stopped
     networks: [internal]
