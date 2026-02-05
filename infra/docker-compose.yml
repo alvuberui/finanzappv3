@@ -31,10 +31,14 @@ services:
       KC_SPI_THEME_CACHE_THEMES: "false"
       KC_SPI_THEME_CACHE_TEMPLATES: "false"
       KC_SPI_THEME_STATIC_MAX_AGE: "-1"
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY: "edge"
     command:
-      - start-dev
-      - --spi-theme-cache-themes=false
-      - --spi-theme-cache-templates=false
+      - start
+      - --http-enabled=true
+      - --hostname-strict=false
+      - --proxy=edge
     ports:
       - "8081:8080"
     volumes:
