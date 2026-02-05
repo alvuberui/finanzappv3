@@ -15,8 +15,8 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-    networks:
-      - internal
+    networks: [internal]
+    mem_limit: 256m
 
   keycloak:
     image: quay.io/keycloak/keycloak:25.0
@@ -33,20 +33,17 @@ services:
       KC_SPI_THEME_CACHE_THEMES: "false"
       KC_SPI_THEME_CACHE_TEMPLATES: "false"
       KC_SPI_THEME_STATIC_MAX_AGE: "-1"
-      # Si vas a usar IP en vez de dominio (opcional)
-      # KC_HOSTNAME: "51.195.86.64"
-      # KC_HOSTNAME_STRICT: "false"
     command:
       - start-dev
       - --spi-theme-cache-themes=false
       - --spi-theme-cache-templates=false
     ports:
-      - "8081:8080"   # Exponer Keycloak para acceso externo (si quieres)
+      - "8081:8080"
     volumes:
       - ./../keycloak/themes/finanzapp:/opt/keycloak/themes/finanzapp:ro
     restart: unless-stopped
-    networks:
-      - internal
+    networks: [internal]
+    mem_limit: 768m
 
   postgres-user:
     image: postgres:16
@@ -62,8 +59,8 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-    networks:
-      - internal
+    networks: [internal]
+    mem_limit: 256m
 
   postgres-movements:
     image: postgres:16
@@ -79,8 +76,8 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-    networks:
-      - internal
+    networks: [internal]
+    mem_limit: 256m
 
   postgres-tags:
     image: postgres:16
@@ -96,8 +93,53 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-    networks:
-      - internal
+    networks: [internal]
+    mem_limit: 256m
+
+  apigateway:
+    image: finanzapp-apigateway:local
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    restart: unless-stopped
+    networks: [internal]
+    mem_limit: 512m
+    cpus: 0.75
+    depends_on:
+      keycloak:
+        condition: service_started
+
+  user:
+    image: finanzapp-user:local
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    restart: unless-stopped
+    networks: [internal]
+    mem_limit: 384m
+    cpus: 0.5
+
+  movements:
+    image: finanzapp-movements:local
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    restart: unless-stopped
+    networks: [internal]
+    mem_limit: 384m
+    cpus: 0.5
+
+  tags:
+    image: finanzapp-tags:local
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    restart: unless-stopped
+    networks: [internal]
+    mem_limit: 384m
+    cpus: 0.5
 
 volumes:
   kcdata:
