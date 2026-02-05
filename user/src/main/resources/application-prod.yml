@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-user:5432/userdb
+    username: useruser
+    password: authpass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/finanzapp
+
+server:
+  port: 8080
+  servlet:
+    context-path: /user

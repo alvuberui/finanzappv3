@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-movements:5432/movementsdb
+    username: movementsuser
+    password: movementspass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/finanzapp
+
+server:
+  port: 8080
+  servlet:
+    context-path: /movement
+
+services:
+  users:
+    base-url: http://user:8080
+  tags:
+    base-url: http://tags:8080
