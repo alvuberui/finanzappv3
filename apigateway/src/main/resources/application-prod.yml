@@ -26,7 +26,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/finanzapp
+          issuer-uri: https://finanzapp.ddns.net/auth/realms/finanzapp
 
 management:
   endpoints:
