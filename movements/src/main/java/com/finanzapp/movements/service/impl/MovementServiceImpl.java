@@ -71,7 +71,7 @@ public class MovementServiceImpl implements MovementService {
             }
 
             case DISCRETIONARY_EXPENSES -> {
-                List<Movement> notEssential = loadMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, from, to, false, null);
+                List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, false, null);
                 yield movementMapper.toAnualMovementResponse(notEssential, idealPercent, benefit);
             }
 
@@ -82,7 +82,7 @@ public class MovementServiceImpl implements MovementService {
 
             case TOTAL_EXPENSES -> {
                 List<Movement> essential = loadMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, from, to, false, null);
-                List<Movement> notEssential = loadMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, from, to, false, null);
+                List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, false, null);
 
                 Map<Integer, Double> totalExpensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
 
@@ -99,7 +99,7 @@ public class MovementServiceImpl implements MovementService {
 
             case SAVINGS -> {
                 List<Movement> essential = loadMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, from, to, false, null);
-                List<Movement> notEssential = loadMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, from, to, false, null);
+                List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, false, null);
                 List<Movement> investment = loadMovements(userEmail, MovementType.INVESTMENT, from, to, false, null);
 
                 Map<Integer, Double> expensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
@@ -144,7 +144,7 @@ public class MovementServiceImpl implements MovementService {
             }
 
             case DISCRETIONARY_EXPENSES -> {
-                List<Movement> notEssential = loadMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, from, to, true, tagId);
+                List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, true, tagId);
                 yield movementMapper.toAnualMovementResponse(notEssential, idealPercent, benefit);
             }
 
@@ -155,7 +155,7 @@ public class MovementServiceImpl implements MovementService {
 
             case TOTAL_EXPENSES -> {
                 List<Movement> essential = loadMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, from, to, true, tagId);
-                List<Movement> notEssential = loadMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, from, to, true, tagId);
+                List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, true, tagId);
 
                 Map<Integer, Double> totalExpensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
 
@@ -172,7 +172,7 @@ public class MovementServiceImpl implements MovementService {
 
             case SAVINGS -> {
                 List<Movement> essential = loadMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, from, to, true, tagId);
-                List<Movement> notEssential = loadMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, from, to, true, tagId);
+                List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, true, tagId);
                 List<Movement> investment = loadMovements(userEmail, MovementType.INVESTMENT, from, to, true, tagId);
 
                 Map<Integer, Double> expensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
@@ -215,7 +215,7 @@ public class MovementServiceImpl implements MovementService {
             }
 
             case DISCRETIONARY_EXPENSES -> {
-                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, false, null);
+                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, false, null);
                 yield movementMapper.toHistoricalMovementResponse(notEssential, idealPercent, benefit);
             }
 
@@ -226,7 +226,7 @@ public class MovementServiceImpl implements MovementService {
 
             case TOTAL_EXPENSES -> {
                 List<Movement> essential = loadHistoricalMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, false, null);
-                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, false, null);
+                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, false, null);
 
                 Map<Integer, Double> totalExpensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
 
@@ -242,7 +242,7 @@ public class MovementServiceImpl implements MovementService {
 
             case SAVINGS -> {
                 List<Movement> essential = loadHistoricalMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, false, null);
-                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, false, null);
+                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, false, null);
                 List<Movement> investment = loadHistoricalMovements(userEmail, MovementType.INVESTMENT, false, null);
 
                 Map<Integer, Double> expensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
@@ -285,7 +285,7 @@ public class MovementServiceImpl implements MovementService {
             }
 
             case DISCRETIONARY_EXPENSES -> {
-                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, true, tagId);
+                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, true, tagId);
                 yield movementMapper.toHistoricalMovementResponse(notEssential, idealPercent, benefit);
             }
 
@@ -296,7 +296,7 @@ public class MovementServiceImpl implements MovementService {
 
             case TOTAL_EXPENSES -> {
                 List<Movement> essential = loadHistoricalMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, true, tagId);
-                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, true, tagId);
+                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, true, tagId);
 
                 Map<Integer, Double> totalExpensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
 
@@ -312,7 +312,7 @@ public class MovementServiceImpl implements MovementService {
 
             case SAVINGS -> {
                 List<Movement> essential = loadHistoricalMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, true, tagId);
-                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.NOT_ESSENTIAL_EXPENSE, true, tagId);
+                List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, true, tagId);
                 List<Movement> investment = loadHistoricalMovements(userEmail, MovementType.INVESTMENT, true, tagId);
 
                 Map<Integer, Double> expensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
@@ -423,7 +423,7 @@ public class MovementServiceImpl implements MovementService {
                 .sum();
         double totalExpenses = allMovements.stream()
                 .filter(m -> m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.ESSENTIAL_EXPENSE
-                        || m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.NOT_ESSENTIAL_EXPENSE)
+                        || m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.DISCRETIONARY_EXPENSE)
                 .mapToDouble(m -> m.getAmount() == null ? 0.0 : m.getAmount())
                 .sum();
         return totalBenefits - totalExpenses;
