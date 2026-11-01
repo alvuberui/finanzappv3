@@ -53,8 +53,11 @@ public class UserServiceImpl implements UserService {
         if(user.getLastname() != null) {
             userEntity.setLastname(user.getLastname());
         }
+        if(user.getInitialWealth() != null) {
+            userEntity.setInitialWealth(user.getInitialWealth());
+        }
         if(user.getMonthlyInvestmentPercentage() != null) {
-            userEntity.setMonthlySavingPercentage(user.getMonthlySavingPercentage());
+            userEntity.setMonthlyInvestmentPercentage(user.getMonthlyInvestmentPercentage());
         }
         if(user.getMonthlyNecessaryExpensesPercentage() != null) {
             userEntity.setMonthlyNecessaryExpensesPercentage(user.getMonthlyNecessaryExpensesPercentage());
@@ -63,7 +66,7 @@ public class UserServiceImpl implements UserService {
             userEntity.setMonthlyDiscretionaryExpensesPercentage(user.getMonthlyDiscretionaryExpensesPercentage());
         }
         if(user.getMonthlySavingPercentage() != null) {
-            userEntity.setMonthlyInvestmentPercentage(user.getMonthlyInvestmentPercentage());
+            userEntity.setMonthlySavingPercentage(user.getMonthlySavingPercentage());
         }
 
         var updatedUserEntity = userRepository.save(userEntity);

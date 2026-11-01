@@ -3,6 +3,8 @@ package com.finanzapp.user.controller.dto;
 import jakarta.persistence.Column;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Builder
 @Getter
 @Setter
@@ -10,11 +12,11 @@ import lombok.*;
 @NoArgsConstructor
 public class IdealPercentageResponseDto {
 
-    private Double monthlySavingPercentage;
+    private BigDecimal monthlySavingPercentage;
 
-    private Double monthlyNecessaryExpensesPercentage;
+    private BigDecimal monthlyNecessaryExpensesPercentage;
 
-    private Double monthlyDiscretionaryExpensesPercentage;
+    private BigDecimal monthlyDiscretionaryExpensesPercentage;
 
-    private Double monthlyInvestmentPercentage;
+    private BigDecimal monthlyInvestmentPercentage;
 }

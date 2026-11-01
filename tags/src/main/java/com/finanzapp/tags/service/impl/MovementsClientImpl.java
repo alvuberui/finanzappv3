@@ -1,23 +1,31 @@
 package com.finanzapp.tags.service.impl;
 
 import org.springframework.http.HttpStatusCode;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import com.finanzapp.tags.service.domain.InternalTagDeletionRequest;
 
 @Component
 public class MovementsClientImpl {
 
     private final RestClient movementsRestClient;
+    private final String internalServiceToken;
 
-    public MovementsClientImpl(RestClient movementsRestClient) {
+    public MovementsClientImpl(
+            RestClient movementsRestClient,
+            @Value("${services.internal-service-token}") String internalServiceToken
+    ) {
         this.movementsRestClient = movementsRestClient;
+        this.internalServiceToken = internalServiceToken;
     }
 
-    public void updateMovementsWhenTagIsDeleted(String bearerToken, Long tagId) {
+    public void detachMovements(String userEmail, Long tagId) {
         movementsRestClient
-                .put()
-                .uri("/movement/movements/updateMovementTags/{tagId}", tagId)
-                .header("Authorization", "Bearer " + bearerToken)
+                .post()
+                .uri("/movement/movements/internal/tag-deletions")
+                .header("X-Internal-Service-Token", internalServiceToken)
+                .body(new InternalTagDeletionRequest(userEmail, tagId))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, (req, res) -> {
                     throw new IllegalStateException(

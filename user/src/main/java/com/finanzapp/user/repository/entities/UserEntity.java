@@ -3,6 +3,8 @@ package com.finanzapp.user.repository.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -29,17 +31,17 @@ public class UserEntity {
     private String birthdate;
 
     @Column(name = "initial_wealth", nullable = false)
-    private Double initialWealth;
+    private BigDecimal initialWealth;
 
     @Column(name = "monthly_saving_percentage", nullable = false)
-    private Double monthlySavingPercentage;
+    private BigDecimal monthlySavingPercentage;
 
     @Column(name = "monthly_necessary_expenses_percentage", nullable = false)
-    private Double monthlyNecessaryExpensesPercentage;
+    private BigDecimal monthlyNecessaryExpensesPercentage;
 
     @Column(name = "monthly_discretionary_expenses_percentage", nullable = false)
-    private Double monthlyDiscretionaryExpensesPercentage;
+    private BigDecimal monthlyDiscretionaryExpensesPercentage;
 
     @Column(name = "monthly_investment_percentage", nullable = false)
-    private Double monthlyInvestmentPercentage;
+    private BigDecimal monthlyInvestmentPercentage;
 }

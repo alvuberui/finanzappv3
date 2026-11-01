@@ -5,6 +5,8 @@ RUN mvn -DskipTests package
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+RUN useradd --system --uid 10001 --create-home appuser
+COPY --from=build --chown=appuser:appuser /app/target/*.jar app.jar
+USER appuser
 EXPOSE 8080
 ENTRYPOINT ["java","-XX:MaxRAMPercentage=75","-jar","app.jar"]

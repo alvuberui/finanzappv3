@@ -4,6 +4,7 @@ import com.finanzapp.movements.controller.dto.*;
 import com.finanzapp.movements.repository.entities.MovementEntity;
 import com.finanzapp.movements.service.domain.*;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ public interface MovementMapper {
 
     List<MovementResponseDto> toMovementDtoList(List<Movement> movementEntities);
 
+    @Mapping(target = "movementType", source = "metric")
     AnualMovementResponseDto toAnualMovementResponseDto(AnualMovementResponse anualMovementResponse);
 
     HistoricalMovementResponseDto toHistoricalMovementResponseDto(HistoricalMovementResponse historicalMovementResponse);

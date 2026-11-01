@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD is required}
     volumes:
       - kcdata:/var/lib/postgresql/data
     healthcheck:
@@ -25,22 +25,22 @@ services:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD: password
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?KEYCLOAK_DB_PASSWORD is required}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?KEYCLOAK_ADMIN is required}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD is required}
       KC_SPI_THEME_CACHE_THEMES: "false"
       KC_SPI_THEME_CACHE_TEMPLATES: "false"
       KC_SPI_THEME_STATIC_MAX_AGE: "-1"
       KC_HTTP_RELATIVE_PATH: "/auth"
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT: "true"
-      KC_HOSTNAME: finanzapp.ddns.net
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:?KEYCLOAK_HOSTNAME is required}
       KC_PROXY: "edge"
     command:
       - start
       - --proxy=edge
       - --http-enabled=true
-      - --hostname=finanzapp.ddns.net
+      - --hostname=${KEYCLOAK_HOSTNAME:?KEYCLOAK_HOSTNAME is required}
       - --hostname-strict=true
       - --http-relative-path=/auth
     ports:
@@ -56,36 +56,57 @@ services:
     environment:
       POSTGRES_DB: userdb
       POSTGRES_USER: useruser
-      POSTGRES_PASSWORD: authpass
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:?USER_DB_PASSWORD is required}
     volumes:
       - postgres_user_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks: [internal]
     mem_limit: 256m
+    ports:
+      - "127.0.0.1:5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U useruser -d userdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   postgres-movements:
     image: postgres:16
     environment:
       POSTGRES_DB: movementsdb
       POSTGRES_USER: movementsuser
-      POSTGRES_PASSWORD: movementspass
+      POSTGRES_PASSWORD: ${MOVEMENTS_DB_PASSWORD:?MOVEMENTS_DB_PASSWORD is required}
     volumes:
       - postgres_movements_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks: [internal]
     mem_limit: 256m
+    ports:
+      - "127.0.0.1:5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U movementsuser -d movementsdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   postgres-tags:
     image: postgres:16
     environment:
       POSTGRES_DB: tagsdb
       POSTGRES_USER: tagsuser
-      POSTGRES_PASSWORD: tagspass
+      POSTGRES_PASSWORD: ${TAGS_DB_PASSWORD:?TAGS_DB_PASSWORD is required}
     volumes:
       - postgres_tag_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks: [internal]
     mem_limit: 256m
+    ports:
+      - "127.0.0.1:5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tagsuser -d tagsdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   apigateway:
     build:
@@ -111,10 +132,14 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+      USER_DB_PASSWORD: ${USER_DB_PASSWORD:?USER_DB_PASSWORD is required}
     restart: unless-stopped
     networks: [internal]
     mem_limit: 384m
     cpus: 0.5
+    depends_on:
+      postgres-user:
+        condition: service_healthy
 
   movements:
     build:
@@ -123,10 +148,15 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+      MOVEMENTS_DB_PASSWORD: ${MOVEMENTS_DB_PASSWORD:?MOVEMENTS_DB_PASSWORD is required}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN is required}
     restart: unless-stopped
     networks: [internal]
     mem_limit: 384m
     cpus: 0.5
+    depends_on:
+      postgres-movements:
+        condition: service_healthy
 
   tags:
     build:
@@ -135,10 +165,15 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+      TAGS_DB_PASSWORD: ${TAGS_DB_PASSWORD:?TAGS_DB_PASSWORD is required}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?INTERNAL_SERVICE_TOKEN is required}
     restart: unless-stopped
     networks: [internal]
     mem_limit: 384m
     cpus: 0.5
+    depends_on:
+      postgres-tags:
+        condition: service_healthy
 
 volumes:
   kcdata:

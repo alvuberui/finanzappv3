@@ -2,6 +2,8 @@ package com.finanzapp.movements.controller.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -11,7 +13,7 @@ public class HistoricalDashboardDto {
 
     Integer year;
 
-    Double idealAmount;
+    BigDecimal idealAmount;
 
-    Double realAmount;
+    BigDecimal realAmount;
 }

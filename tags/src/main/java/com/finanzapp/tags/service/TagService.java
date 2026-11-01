@@ -3,7 +3,6 @@ package com.finanzapp.tags.service;
 import com.finanzapp.tags.service.domain.CreateTagRequest;
 import com.finanzapp.tags.service.domain.Tag;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface TagService {
@@ -14,7 +13,7 @@ public interface TagService {
 
     Tag getTagByIdAndUserEmail(Long tagId, String userEmail);
 
-    Void deleteTag(Long tagId, String userEmail);
+    void deleteTag(Long tagId, String userEmail);
 
     Boolean existsByIdAndUserEmail(Long tagId, String userEmail);
 

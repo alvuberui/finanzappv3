@@ -34,27 +34,32 @@ public class CreateUserRequestDto {
 
     @NotNull(message = "Obligatorio")
     @DecimalMin(value = "0.0", message = "El patrimonio inicial no puede ser negativo")
-    private Double initialWealth;
+    @Digits(integer = 15, fraction = 2, message = "El patrimonio inicial debe tener como máximo 15 dígitos y 2 decimales")
+    private BigDecimal initialWealth;
 
     @NotNull(message = "Obligatorio")
     @DecimalMin(value = "0.0", message = "Debe estar entre 0 y 100")
     @DecimalMax(value = "100.0", message = "El porcentaje debe estar entre 0 y 100")
-    private Double monthlySavingPercentage;
+    @Digits(integer = 3, fraction = 2, message = "El porcentaje debe tener como máximo 2 decimales")
+    private BigDecimal monthlySavingPercentage;
 
     @NotNull(message = "Obligatorio")
     @DecimalMin(value = "0.0", message = "Debe estar entre 0 y 100")
     @DecimalMax(value = "100.0", message = "El porcentaje debe estar entre 0 y 100")
-    private Double monthlyNecessaryExpensesPercentage;
+    @Digits(integer = 3, fraction = 2, message = "El porcentaje debe tener como máximo 2 decimales")
+    private BigDecimal monthlyNecessaryExpensesPercentage;
 
     @NotNull(message = "Obligatorio")
     @DecimalMin(value = "0.0", message = "Debe estar entre 0 y 100")
     @DecimalMax(value = "100.0", message = "El porcentaje debe estar entre 0 y 100")
-    private Double monthlyDiscretionaryExpensesPercentage;
+    @Digits(integer = 3, fraction = 2, message = "El porcentaje debe tener como máximo 2 decimales")
+    private BigDecimal monthlyDiscretionaryExpensesPercentage;
 
     @NotNull(message = "Obligatorio")
     @DecimalMin(value = "0.0", message = "Debe estar entre 0 y 100")
     @DecimalMax(value = "100.0", message = "El porcentaje debe estar entre 0 y 100")
-    private Double monthlyInvestmentPercentage;
+    @Digits(integer = 3, fraction = 2, message = "El porcentaje debe tener como máximo 2 decimales")
+    private BigDecimal monthlyInvestmentPercentage;
 
     @AssertTrue(message = "La suma de porcentajes debe ser 100%")
     public boolean isPercentagesSum100() {
@@ -65,14 +70,14 @@ public class CreateUserRequestDto {
             return false;
         }
 
-        BigDecimal sum = BigDecimal.valueOf(monthlySavingPercentage)
-                .add(BigDecimal.valueOf(monthlyNecessaryExpensesPercentage))
-                .add(BigDecimal.valueOf(monthlyDiscretionaryExpensesPercentage))
-                .add(BigDecimal.valueOf(monthlyInvestmentPercentage));
+        BigDecimal sum = monthlySavingPercentage
+                .add(monthlyNecessaryExpensesPercentage)
+                .add(monthlyDiscretionaryExpensesPercentage)
+                .add(monthlyInvestmentPercentage);
 
         // equivalente a Math.round(sum*100)/100 en JS
         BigDecimal rounded = sum.setScale(2, RoundingMode.HALF_UP);
 
-        return rounded.compareTo(BigDecimal.valueOf(100.00).setScale(2, RoundingMode.HALF_UP)) == 0;
+        return rounded.compareTo(new BigDecimal("100.00")) == 0;
     }
 }

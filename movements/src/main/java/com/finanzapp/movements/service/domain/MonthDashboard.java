@@ -2,6 +2,8 @@ package com.finanzapp.movements.service.domain;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @Builder
@@ -13,7 +15,7 @@ public class MonthDashboard {
 
     String monthName;
 
-    Double idealAmount;
+    BigDecimal idealAmount;
 
-    Double realAmount;
+    BigDecimal realAmount;
 }

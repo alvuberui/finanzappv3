@@ -2,6 +2,8 @@ package com.finanzapp.movements.service.domain;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Builder
 @Getter
 @Setter
@@ -19,13 +21,13 @@ public class User {
 
     private String birthdate;
 
-    private Double initialWealth;
+    private BigDecimal initialWealth;
 
-    private Double monthlySavingPercentage;
+    private BigDecimal monthlySavingPercentage;
 
-    private Double monthlyNecessaryExpensesPercentage;
+    private BigDecimal monthlyNecessaryExpensesPercentage;
 
-    private Double monthlyDiscretionaryExpensesPercentage;
+    private BigDecimal monthlyDiscretionaryExpensesPercentage;
 
-    private Double monthlyInvestmentPercentage;
+    private BigDecimal monthlyInvestmentPercentage;
 }
