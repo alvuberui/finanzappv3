@@ -26,5 +26,9 @@ public class TagEntity {
 
     @Column(name = "user_email", nullable = false)
     private String userEmail;
+
+    @Builder.Default
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
 }
 

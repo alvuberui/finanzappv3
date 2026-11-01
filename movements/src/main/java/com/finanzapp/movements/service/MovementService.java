@@ -2,6 +2,7 @@ package com.finanzapp.movements.service;
 
 import com.finanzapp.movements.service.domain.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -140,5 +141,11 @@ public interface MovementService {
      * @param tokenValue the token value
      * @return the actual total savings
      */
-    Double getActualTotalSavings(String userEmail, String tokenValue);
+    BigDecimal getActualTotalSavings(String userEmail, String tokenValue);
+
+    /**
+     * Get the net worth for a user and token.
+     * Formula: initial wealth + benefits - expenses.
+     */
+    BigDecimal getNetWorth(String userEmail, String tokenValue);
 }

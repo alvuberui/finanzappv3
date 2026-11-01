@@ -3,6 +3,7 @@ package com.finanzapp.movements.repository.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -26,7 +27,7 @@ public class MovementEntity {
     private MovementType movementType;
 
     @Column(nullable = false)
-    private Double amount;
+    private BigDecimal amount;
 
     @Column(nullable = false)
     private LocalDate date;

@@ -12,15 +12,17 @@ import java.util.Optional;
 @Repository
 public interface TagRepository extends JpaRepository<TagEntity, Long> {
 
-    boolean existsByNameAndUserEmail(String name, String userEmail);
+    boolean existsByNameAndUserEmailAndDeletedFalse(String name, String userEmail);
 
-    List<TagEntity> findByUserEmail(String userEmail);
+    List<TagEntity> findByUserEmailAndDeletedFalse(String userEmail);
+
+    Optional<TagEntity> findByIdAndUserEmailAndDeletedFalse(Long id, String userEmail);
 
     Optional<TagEntity> findByIdAndUserEmail(Long id, String userEmail);
 
-    boolean existsByIdAndUserEmail(Long id, String userEmail);
+    boolean existsByIdAndUserEmailAndDeletedFalse(Long id, String userEmail);
 
-    List<TagEntity> findByUserEmailAndIdIn(String userEmail, List<Long> ids);
+    List<TagEntity> findByUserEmailAndIdInAndDeletedFalse(String userEmail, List<Long> ids);
 
 
 

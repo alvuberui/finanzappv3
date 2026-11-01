@@ -2,6 +2,8 @@ package com.finanzapp.movements.service.domain;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Builder
 @Getter
 @Setter
@@ -9,11 +11,11 @@ import lombok.*;
 @NoArgsConstructor
 public class IdealPercentageResponse {
 
-    private Double monthlySavingPercentage;
+    private BigDecimal monthlySavingPercentage;
 
-    private Double monthlyNecessaryExpensesPercentage;
+    private BigDecimal monthlyNecessaryExpensesPercentage;
 
-    private Double monthlyDiscretionaryExpensesPercentage;
+    private BigDecimal monthlyDiscretionaryExpensesPercentage;
 
-    private Double monthlyInvestmentPercentage;
+    private BigDecimal monthlyInvestmentPercentage;
 }

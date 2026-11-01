@@ -6,6 +6,7 @@ import com.finanzapp.movements.service.domain.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.math.BigDecimal;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.*;
@@ -32,7 +33,7 @@ public interface MovementEntityMapper {
     default AnualMovementResponse toAnualMovementResponse(
             List<Movement> results,
             Locale locale,
-            Double idealPercent,
+            BigDecimal idealPercent,
             List<Movement> benefitResults
     ) {
         if (results == null || results.isEmpty()) {
@@ -48,21 +49,22 @@ public interface MovementEntityMapper {
         String movementType = first.getMovementType().toString();
         int year = first.getDate().getYear();
 
-        double percent = (idealPercent == null ? 0.0 : idealPercent) / 100.0;
+        BigDecimal percent = (idealPercent == null ? BigDecimal.ZERO : idealPercent)
+                .divide(BigDecimal.valueOf(100), 10, java.math.RoundingMode.HALF_UP);
 
         // Real por mes (sum amount)
-        Map<Integer, Double> realByMonth = results.stream()
+        Map<Integer, BigDecimal> realByMonth = results.stream()
                 .collect(Collectors.groupingBy(
                         m -> m.getDate().getMonthValue(),
-                        Collectors.summingDouble(m -> Optional.ofNullable(m.getAmount()).orElse(0.0))
+                        Collectors.reducing(BigDecimal.ZERO, m -> Optional.ofNullable(m.getAmount()).orElse(BigDecimal.ZERO), BigDecimal::add)
                 ));
 
         // Beneficios por mes (sum amount) — solo del mismo año por seguridad
-        Map<Integer, Double> benefitByMonth = (benefitResults == null ? List.<Movement>of() : benefitResults).stream()
+        Map<Integer, BigDecimal> benefitByMonth = (benefitResults == null ? List.<Movement>of() : benefitResults).stream()
                 .filter(m -> m.getDate() != null && m.getDate().getYear() == year)
                 .collect(Collectors.groupingBy(
                         m -> m.getDate().getMonthValue(),
-                        Collectors.summingDouble(m -> Optional.ofNullable(m.getAmount()).orElse(0.0))
+                        Collectors.reducing(BigDecimal.ZERO, m -> Optional.ofNullable(m.getAmount()).orElse(BigDecimal.ZERO), BigDecimal::add)
                 ));
 
         // Serie mensual (12 meses)
@@ -71,14 +73,14 @@ public interface MovementEntityMapper {
             Month mo = Month.of(month);
             String monthName = mo.getDisplayName(TextStyle.FULL, locale);
 
-            double benefitSum = benefitByMonth.getOrDefault(month, 0.0);
-            double idealAmount = benefitSum * percent;
+            BigDecimal benefitSum = benefitByMonth.getOrDefault(month, BigDecimal.ZERO);
+            BigDecimal idealAmount = benefitSum.multiply(percent);
 
             series.add(MonthDashboard.builder()
                     .month(month)
                     .monthName(monthName)
                     .idealAmount(idealAmount)
-                    .realAmount(realByMonth.getOrDefault(month, 0.0))
+                    .realAmount(realByMonth.getOrDefault(month, BigDecimal.ZERO))
                     .build());
         }
 
@@ -92,7 +94,7 @@ public interface MovementEntityMapper {
     default HistoricalMovementResponse toHistoricalMovementResponse(
             List<Movement> results,
             Locale locale,
-            Double idealPercent,
+            BigDecimal idealPercent,
             List<Movement> benefitResults
     ) {
         if (results == null || results.isEmpty()) {
@@ -105,22 +107,23 @@ public interface MovementEntityMapper {
         // La "métrica" la sacamos del tipo del primer movimiento (se asume lista filtrada por métrica/tipo)
         String metric = results.getFirst().getMovementType().toString();
 
-        double percent = (idealPercent == null ? 0.0 : idealPercent) / 100.0;
+        BigDecimal percent = (idealPercent == null ? BigDecimal.ZERO : idealPercent)
+                .divide(BigDecimal.valueOf(100), 10, java.math.RoundingMode.HALF_UP);
 
         // Real por año
-        Map<Integer, Double> realByYear = results.stream()
+        Map<Integer, BigDecimal> realByYear = results.stream()
                 .filter(m -> m.getDate() != null)
                 .collect(Collectors.groupingBy(
                         m -> m.getDate().getYear(),
-                        Collectors.summingDouble(m -> Optional.ofNullable(m.getAmount()).orElse(0.0))
+                        Collectors.reducing(BigDecimal.ZERO, m -> Optional.ofNullable(m.getAmount()).orElse(BigDecimal.ZERO), BigDecimal::add)
                 ));
 
         // Beneficios por año (para calcular ideal por año)
-        Map<Integer, Double> benefitByYear = (benefitResults == null ? List.<Movement>of() : benefitResults).stream()
+        Map<Integer, BigDecimal> benefitByYear = (benefitResults == null ? List.<Movement>of() : benefitResults).stream()
                 .filter(m -> m.getDate() != null)
                 .collect(Collectors.groupingBy(
                         m -> m.getDate().getYear(),
-                        Collectors.summingDouble(m -> Optional.ofNullable(m.getAmount()).orElse(0.0))
+                        Collectors.reducing(BigDecimal.ZERO, m -> Optional.ofNullable(m.getAmount()).orElse(BigDecimal.ZERO), BigDecimal::add)
                 ));
 
         // Unión de años (para cubrir años donde haya benefits pero no movements del tipo, o viceversa)
@@ -132,9 +135,9 @@ public interface MovementEntityMapper {
 
         List<HistoricalDashboard> series = new ArrayList<>(sortedYears.size());
         for (Integer year : sortedYears) {
-            double benefitSum = benefitByYear.getOrDefault(year, 0.0);
-            double idealAmount = benefitSum * percent;
-            double realAmount = realByYear.getOrDefault(year, 0.0);
+            BigDecimal benefitSum = benefitByYear.getOrDefault(year, BigDecimal.ZERO);
+            BigDecimal idealAmount = benefitSum.multiply(percent);
+            BigDecimal realAmount = realByYear.getOrDefault(year, BigDecimal.ZERO);
 
             series.add(HistoricalDashboard.builder()
                     .year(year)
@@ -150,13 +153,13 @@ public interface MovementEntityMapper {
     }
 
 
-    default HistoricalMovementResponse toHistoricalMovementResponse(List<Movement> results, Double idealPercent,
+    default HistoricalMovementResponse toHistoricalMovementResponse(List<Movement> results, BigDecimal idealPercent,
                                                                     List<Movement> benefitResults) {
         return toHistoricalMovementResponse(results, new Locale("es", "ES"), idealPercent, benefitResults);
     }
 
 
-    default AnualMovementResponse toAnualMovementResponse(List<Movement> results, Double idealPercent,
+    default AnualMovementResponse toAnualMovementResponse(List<Movement> results, BigDecimal idealPercent,
                                                           List<Movement> benefitResults) {
         return toAnualMovementResponse(results, new Locale("es", "ES"), idealPercent, benefitResults);
     }

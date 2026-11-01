@@ -25,13 +25,18 @@ public class UserController {
     private final UserMapper userMapper;
 
     @GetMapping("/isOnboarded")
-    public ResponseEntity<BooleanRespondeDto> isUserOnboarded(@RequestParam("email") String email) {
+    public ResponseEntity<BooleanRespondeDto> isUserOnboarded(@AuthenticationPrincipal Jwt jwt) {
+        String email = jwt.getClaimAsString("email");
         BooleanRespondeDto response = commonObjectMapper.toBooleanRespondeDto(userService.hasOnBoarded(email));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/")
-    public ResponseEntity<Void> createUser(@Valid @RequestBody CreateUserRequestDto requestDto) {
+    public ResponseEntity<Void> createUser(
+            @Valid @RequestBody CreateUserRequestDto requestDto,
+            @AuthenticationPrincipal Jwt jwt) {
+        // La identidad debe derivarse del token validado, nunca de un email enviado por el cliente.
+        requestDto.setEmail(jwt.getClaimAsString("email"));
         userService.createUser(
                 commonObjectMapper.toCreateUserRequest(requestDto)
         );

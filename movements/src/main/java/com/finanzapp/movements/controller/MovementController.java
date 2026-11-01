@@ -5,19 +5,24 @@ import com.finanzapp.movements.controller.dto.*;
 import com.finanzapp.movements.controller.mapper.MovementMapper;
 import com.finanzapp.movements.service.MovementService;
 import com.finanzapp.movements.service.impl.MovementTagsEnricher;
-import lombok.Builder;
-import org.apache.coyote.Response;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/movements")
-@Builder
+@RequiredArgsConstructor
 public class MovementController {
 
     private final MovementService movementService;
@@ -25,6 +30,9 @@ public class MovementController {
     private final MovementMapper movementMapper;
 
     private final MovementTagsEnricher movementTagsEnricher;
+
+    @Value("${services.internal-service-token}")
+    private String internalServiceToken;
 
 
     @GetMapping("/allYears")
@@ -163,7 +171,7 @@ public class MovementController {
     }
 
     @PostMapping()
-    public ResponseEntity<MovementResponseDto> createMovement(@RequestBody CreateMovementDto createMovementDto, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<MovementResponseDto> createMovement(@Valid @RequestBody CreateMovementDto createMovementDto, @AuthenticationPrincipal Jwt jwt) {
         String email = jwt.getClaimAsString("email");
 
         MovementResponseDto response = movementMapper.toMovementDto(
@@ -178,7 +186,7 @@ public class MovementController {
     @PutMapping("/{id}")
     public ResponseEntity<MovementResponseDto> updateMovement(
             @PathVariable Long id,
-            @RequestBody UpdateMovementDto updateMovementDto,
+            @Valid @RequestBody UpdateMovementDto updateMovementDto,
             @AuthenticationPrincipal Jwt jwt
     ) {
         String email = jwt.getClaimAsString("email");
@@ -209,7 +217,7 @@ public class MovementController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteMovementById(
+    public ResponseEntity<Void> deleteMovementById(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt
     ) {
@@ -230,14 +238,47 @@ public class MovementController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/internal/tag-deletions")
+    public ResponseEntity<Void> detachMovementsForTagDeletion(
+            @RequestHeader(value = "X-Internal-Service-Token", required = false) String providedToken,
+            @Valid @RequestBody InternalTagDeletionRequest request
+    ) {
+        if (!sameToken(providedToken, internalServiceToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        movementService.updateMovementsWhenTagIsDeleted(request.userEmail(), request.tagId());
+        return ResponseEntity.noContent().build();
+    }
+
+    private boolean sameToken(String providedToken, String expectedToken) {
+        if (providedToken == null || expectedToken == null || expectedToken.isBlank()) return false;
+        return MessageDigest.isEqual(
+                providedToken.getBytes(StandardCharsets.UTF_8),
+                expectedToken.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
     @GetMapping("/savings")
-    public ResponseEntity<Double> getActualTotalSavings(
+    public ResponseEntity<BigDecimal> getActualTotalSavings(
             @AuthenticationPrincipal Jwt jwt
     ) {
         String email = jwt.getClaimAsString("email");
         String tokenValue = jwt.getTokenValue();
 
-        Double response = movementService.getActualTotalSavings(email, tokenValue);
+        BigDecimal response = movementService.getActualTotalSavings(email, tokenValue);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/net-worth")
+    public ResponseEntity<BigDecimal> getNetWorth(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        String email = jwt.getClaimAsString("email");
+        String tokenValue = jwt.getTokenValue();
+
+        BigDecimal response = movementService.getNetWorth(email, tokenValue);
 
         return ResponseEntity.ok(response);
     }

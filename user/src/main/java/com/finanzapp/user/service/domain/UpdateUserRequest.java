@@ -2,6 +2,8 @@ package com.finanzapp.user.service.domain;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Builder
 @Getter
 @Setter
@@ -17,11 +19,13 @@ public class UpdateUserRequest {
 
     private String birthdate;
 
-    private Double monthlySavingPercentage;
+    private BigDecimal initialWealth;
 
-    private Double monthlyNecessaryExpensesPercentage;
+    private BigDecimal monthlySavingPercentage;
 
-    private Double monthlyDiscretionaryExpensesPercentage;
+    private BigDecimal monthlyNecessaryExpensesPercentage;
 
-    private Double monthlyInvestmentPercentage;
+    private BigDecimal monthlyDiscretionaryExpensesPercentage;
+
+    private BigDecimal monthlyInvestmentPercentage;
 }

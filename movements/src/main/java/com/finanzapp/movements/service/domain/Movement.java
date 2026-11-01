@@ -4,6 +4,7 @@ package com.finanzapp.movements.service.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -19,7 +20,7 @@ public class Movement {
 
     private MovementType movementType;
 
-    private Double amount;
+    private BigDecimal amount;
 
     private LocalDate date;
 

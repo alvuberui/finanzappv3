@@ -17,8 +17,6 @@ public class TagsClientImpl {
     }
 
     public Boolean existsByIdAndUserEmail(Long tagId, String bearerToken) {
-        System.out.println("Checking existence of tag with ID: " + tagId);
-        System.out.println("Using bearer token: " + bearerToken);
         return tagsRestClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/tag/tags/exists/{tagId}").build(tagId))
                 .header("Authorization", "Bearer " + bearerToken)

@@ -8,7 +8,9 @@ import com.finanzapp.movements.service.MovementService;
 import com.finanzapp.movements.service.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +54,7 @@ public class MovementServiceImpl implements MovementService {
     ) {
         validateSameYear(from, to);
 
-        Metric metricEnum = Metric.valueOf(metric);
+        Metric metricEnum = parseMetric(metric);
 
         // Siempre cargamos BENEFIT porque:
         // - lo necesitas como base para calcular IDEAL (ideal = benefits * %)
@@ -60,7 +62,7 @@ public class MovementServiceImpl implements MovementService {
         List<Movement> benefit = loadMovements(userEmail, MovementType.BENEFIT, from, to, false, null);
 
         IdealPercentageResponse idealPercentResponse = usersClient.getIdealPercent(tokenValue);
-        Double idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
+        BigDecimal idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
 
         return switch (metricEnum) {
             case BENEFIT -> movementMapper.toAnualMovementResponse(benefit, idealPercent, benefit);
@@ -84,7 +86,7 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> essential = loadMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, from, to, false, null);
                 List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, false, null);
 
-                Map<Integer, Double> totalExpensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
+                Map<Integer, BigDecimal> totalExpensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
 
                 List<Movement> synthetic = buildMonthlySyntheticMovements(
                         userEmail,
@@ -102,8 +104,8 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, false, null);
                 List<Movement> investment = loadMovements(userEmail, MovementType.INVESTMENT, from, to, false, null);
 
-                Map<Integer, Double> expensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
-                Map<Integer, Double> savingsByMonth = subtractMaps(
+                Map<Integer, BigDecimal> expensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
+                Map<Integer, BigDecimal> savingsByMonth = subtractMaps(
                         subtractMaps(sumByMonth(benefit), expensesByMonth),
                         sumByMonth(investment)
                 );
@@ -125,7 +127,7 @@ public class MovementServiceImpl implements MovementService {
     public AnualMovementResponse getAnualMovementDashboardFilterByTagId(String userEmail, String metric, LocalDate from, LocalDate to, String tokenValue, Long tagId) {
         validateSameYear(from, to);
 
-        Metric metricEnum = Metric.valueOf(metric);
+        Metric metricEnum = parseMetric(metric);
 
         // Siempre cargamos BENEFIT porque:
         // - lo necesitas como base para calcular IDEAL (ideal = benefits * %)
@@ -133,7 +135,7 @@ public class MovementServiceImpl implements MovementService {
         List<Movement> benefit = loadMovements(userEmail, MovementType.BENEFIT, from, to, true, tagId);
 
         IdealPercentageResponse idealPercentResponse = usersClient.getIdealPercent(tokenValue);
-        Double idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
+        BigDecimal idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
 
         return switch (metricEnum) {
             case BENEFIT -> movementMapper.toAnualMovementResponse(benefit, idealPercent, benefit);
@@ -157,7 +159,7 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> essential = loadMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, from, to, true, tagId);
                 List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, true, tagId);
 
-                Map<Integer, Double> totalExpensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
+                Map<Integer, BigDecimal> totalExpensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
 
                 List<Movement> synthetic = buildMonthlySyntheticMovements(
                         userEmail,
@@ -175,8 +177,8 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> notEssential = loadMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, from, to, true, tagId);
                 List<Movement> investment = loadMovements(userEmail, MovementType.INVESTMENT, from, to, true, tagId);
 
-                Map<Integer, Double> expensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
-                Map<Integer, Double> savingsByMonth = subtractMaps(
+                Map<Integer, BigDecimal> expensesByMonth = addMaps(sumByMonth(essential), sumByMonth(notEssential));
+                Map<Integer, BigDecimal> savingsByMonth = subtractMaps(
                         subtractMaps(sumByMonth(benefit), expensesByMonth),
                         sumByMonth(investment)
                 );
@@ -196,7 +198,7 @@ public class MovementServiceImpl implements MovementService {
 
     @Override
     public HistoricalMovementResponse getHistoricalMovements(String userEmail, String metric, String tokenValue) {
-        Metric metricEnum = Metric.valueOf(metric);
+        Metric metricEnum = parseMetric(metric);
 
         // Siempre cargamos BENEFIT porque:
         // - IDEAL se calcula como (beneficios del año * porcentaje)
@@ -204,7 +206,7 @@ public class MovementServiceImpl implements MovementService {
         List<Movement> benefit = loadHistoricalMovements(userEmail, MovementType.BENEFIT, false, null);
 
         IdealPercentageResponse idealPercentResponse = usersClient.getIdealPercent(tokenValue);
-        Double idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
+        BigDecimal idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
 
         return switch (metricEnum) {
             case BENEFIT -> movementMapper.toHistoricalMovementResponse(benefit, idealPercent, benefit);
@@ -228,7 +230,7 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> essential = loadHistoricalMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, false, null);
                 List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, false, null);
 
-                Map<Integer, Double> totalExpensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
+                Map<Integer, BigDecimal> totalExpensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
 
                 List<Movement> synthetic = buildYearlySyntheticMovements(
                         userEmail,
@@ -245,9 +247,9 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, false, null);
                 List<Movement> investment = loadHistoricalMovements(userEmail, MovementType.INVESTMENT, false, null);
 
-                Map<Integer, Double> expensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
+                Map<Integer, BigDecimal> expensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
 
-                Map<Integer, Double> savingsByYear = subtractYearMaps(
+                Map<Integer, BigDecimal> savingsByYear = subtractYearMaps(
                         subtractYearMaps(sumByYear(benefit), expensesByYear),
                         sumByYear(investment)
                 );
@@ -266,7 +268,7 @@ public class MovementServiceImpl implements MovementService {
 
     @Override
     public HistoricalMovementResponse getHistoricalMovementsFilterByTagId(String userEmail, String metric, String tokenValue, Long tagId) {
-        Metric metricEnum = Metric.valueOf(metric);
+        Metric metricEnum = parseMetric(metric);
 
         // Siempre cargamos BENEFIT porque:
         // - IDEAL se calcula como (beneficios del año * porcentaje)
@@ -274,7 +276,7 @@ public class MovementServiceImpl implements MovementService {
         List<Movement> benefit = loadHistoricalMovements(userEmail, MovementType.BENEFIT, true, tagId);
 
         IdealPercentageResponse idealPercentResponse = usersClient.getIdealPercent(tokenValue);
-        Double idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
+        BigDecimal idealPercent = getIdealPercent(idealPercentResponse, metricEnum);
 
         return switch (metricEnum) {
             case BENEFIT -> movementMapper.toHistoricalMovementResponse(benefit, idealPercent, benefit);
@@ -298,7 +300,7 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> essential = loadHistoricalMovements(userEmail, MovementType.ESSENTIAL_EXPENSE, true, tagId);
                 List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, true, tagId);
 
-                Map<Integer, Double> totalExpensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
+                Map<Integer, BigDecimal> totalExpensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
 
                 List<Movement> synthetic = buildYearlySyntheticMovements(
                         userEmail,
@@ -315,9 +317,9 @@ public class MovementServiceImpl implements MovementService {
                 List<Movement> notEssential = loadHistoricalMovements(userEmail, MovementType.DISCRETIONARY_EXPENSE, true, tagId);
                 List<Movement> investment = loadHistoricalMovements(userEmail, MovementType.INVESTMENT, true, tagId);
 
-                Map<Integer, Double> expensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
+                Map<Integer, BigDecimal> expensesByYear = addYearMaps(sumByYear(essential), sumByYear(notEssential));
 
-                Map<Integer, Double> savingsByYear = subtractYearMaps(
+                Map<Integer, BigDecimal> savingsByYear = subtractYearMaps(
                         subtractYearMaps(sumByYear(benefit), expensesByYear),
                         sumByYear(investment)
                 );
@@ -336,11 +338,11 @@ public class MovementServiceImpl implements MovementService {
 
     @Override
     public Movement createMovement(CreateMovementRequest movement, String userEmail, String bearerToken) {
-        if(movement.getAmount() < 0 ) {
-            throw new IllegalArgumentException("La cantidad debe de ser mayor o igual a 0");
+        if (movement.getAmount() != null && movement.getAmount().signum() <= 0) {
+            throw new IllegalArgumentException("La cantidad debe de ser mayor que 0");
         }
         if(movement.getTagId() != null) {
-            if(tagsClient.existsByIdAndUserEmail( movement.getTagId(), bearerToken ) == Boolean.FALSE) {
+            if (!Boolean.TRUE.equals(tagsClient.existsByIdAndUserEmail(movement.getTagId(), bearerToken))) {
                 throw new IllegalArgumentException("La etiqueta indicada no existe");
             }
         }
@@ -352,12 +354,12 @@ public class MovementServiceImpl implements MovementService {
         MovementEntity existingMovement = this.movementRepository.findByIdAndUserEmail(movementId, userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Movimiento no encontrado"));
 
-        if(movement.getAmount() != null && movement.getAmount() < 0 ) {
-            throw new IllegalArgumentException("La cantidad debe de ser mayor o igual a 0");
+        if (movement.getAmount() != null && movement.getAmount().signum() <= 0) {
+            throw new IllegalArgumentException("La cantidad debe de ser mayor que 0");
         }
 
         if(movement.getTagId() != null) {
-            if(tagsClient.existsByIdAndUserEmail( movement.getTagId(), bearerToken ) == Boolean.FALSE) {
+            if (!Boolean.TRUE.equals(tagsClient.existsByIdAndUserEmail(movement.getTagId(), bearerToken))) {
                 throw new IllegalArgumentException("La etiqueta indicada no existe");
             }
         }
@@ -368,10 +370,10 @@ public class MovementServiceImpl implements MovementService {
         if (movement.getDate() != null) {
             existingMovement.setDate(movement.getDate());
         }
-        if (movement.getTagId() != null) {
+        if (movement.isTagIdSpecified()) {
             existingMovement.setTagId(movement.getTagId());
         }
-        if (movement.getDescription() != null) {
+        if (movement.isDescriptionSpecified()) {
             existingMovement.setDescription(movement.getDescription());
         }
         if (movement.getMovementType() != null) {
@@ -397,6 +399,7 @@ public class MovementServiceImpl implements MovementService {
     }
 
     @Override
+    @Transactional
     public void updateMovementsWhenTagIsDeleted(String userEmail, Long tagId) {
         List<Movement> movements = movementMapper.toDomainList(
                 movementRepository.findByUserEmailAndTagId(userEmail, tagId)
@@ -409,7 +412,7 @@ public class MovementServiceImpl implements MovementService {
     }
 
     @Override
-    public Double getActualTotalSavings(String userEmail, String tokenValue) {
+    public BigDecimal getActualTotalSavings(String userEmail, String tokenValue) {
         User user = usersClient.getUser(tokenValue);
         if (user == null) {
             throw new IllegalArgumentException("Usuario no encontrado");
@@ -417,16 +420,47 @@ public class MovementServiceImpl implements MovementService {
         List<Movement> allMovements = movementMapper.toDomainList(
                 movementRepository.findByUserEmail(userEmail)
         );
-        double totalBenefits = allMovements.stream()
+        BigDecimal totalBenefits = allMovements.stream()
                 .filter(m -> m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.BENEFIT)
-                .mapToDouble(m -> m.getAmount() == null ? 0.0 : m.getAmount())
-                .sum();
-        double totalExpenses = allMovements.stream()
+                .map(m -> m.getAmount() == null ? BigDecimal.ZERO : m.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpenses = allMovements.stream()
                 .filter(m -> m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.ESSENTIAL_EXPENSE
                         || m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.DISCRETIONARY_EXPENSE)
-                .mapToDouble(m -> m.getAmount() == null ? 0.0 : m.getAmount())
-                .sum();
-        return totalBenefits - totalExpenses;
+                .map(m -> m.getAmount() == null ? BigDecimal.ZERO : m.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return totalBenefits.subtract(totalExpenses);
+    }
+
+    @Override
+    public BigDecimal getNetWorth(String userEmail, String tokenValue) {
+        User user = usersClient.getUser(tokenValue);
+        if (user == null) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+
+        BigDecimal initialWealth = user.getInitialWealth() == null
+                ? BigDecimal.ZERO
+                : user.getInitialWealth();
+        List<Movement> allMovements = movementMapper.toDomainList(
+                movementRepository.findByUserEmail(userEmail)
+        );
+        BigDecimal totalBenefits = sumByType(allMovements, com.finanzapp.movements.service.domain.MovementType.BENEFIT);
+        BigDecimal totalExpenses = allMovements.stream()
+                .filter(m -> m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.ESSENTIAL_EXPENSE
+                        || m.getMovementType() == com.finanzapp.movements.service.domain.MovementType.DISCRETIONARY_EXPENSE)
+                .map(m -> m.getAmount() == null ? BigDecimal.ZERO : m.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return initialWealth
+                .add(totalBenefits)
+                .subtract(totalExpenses);
+    }
+
+    private BigDecimal sumByType(List<Movement> movements, com.finanzapp.movements.service.domain.MovementType type) {
+        return movements.stream()
+                .filter(m -> m.getMovementType() == type)
+                .map(m -> m.getAmount() == null ? BigDecimal.ZERO : m.getAmount())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 
@@ -434,37 +468,38 @@ public class MovementServiceImpl implements MovementService {
     // Helpers
     // -----------------------
 
-    private Map<Integer, Double> sumByYear(List<Movement> movements) {
+    private Map<Integer, BigDecimal> sumByYear(List<Movement> movements) {
         if (movements == null) return Map.of();
 
         return movements.stream()
                 .filter(m -> m.getDate() != null)
                 .collect(java.util.stream.Collectors.groupingBy(
                         m -> m.getDate().getYear(),
-                        java.util.stream.Collectors.summingDouble(m -> m.getAmount() == null ? 0.0 : m.getAmount())
+                        java.util.stream.Collectors.reducing(BigDecimal.ZERO,
+                                m -> m.getAmount() == null ? BigDecimal.ZERO : m.getAmount(), BigDecimal::add)
                 ));
     }
 
-    private Map<Integer, Double> addYearMaps(Map<Integer, Double> a, Map<Integer, Double> b) {
-        Map<Integer, Double> out = new HashMap<>();
+    private Map<Integer, BigDecimal> addYearMaps(Map<Integer, BigDecimal> a, Map<Integer, BigDecimal> b) {
+        Map<Integer, BigDecimal> out = new HashMap<>();
         java.util.Set<Integer> years = new java.util.HashSet<>();
         years.addAll(a.keySet());
         years.addAll(b.keySet());
 
         for (Integer y : years) {
-            out.put(y, a.getOrDefault(y, 0.0) + b.getOrDefault(y, 0.0));
+            out.put(y, a.getOrDefault(y, BigDecimal.ZERO).add(b.getOrDefault(y, BigDecimal.ZERO)));
         }
         return out;
     }
 
-    private Map<Integer, Double> subtractYearMaps(Map<Integer, Double> base, Map<Integer, Double> minus) {
-        Map<Integer, Double> out = new HashMap<>();
+    private Map<Integer, BigDecimal> subtractYearMaps(Map<Integer, BigDecimal> base, Map<Integer, BigDecimal> minus) {
+        Map<Integer, BigDecimal> out = new HashMap<>();
         java.util.Set<Integer> years = new java.util.HashSet<>();
         years.addAll(base.keySet());
         years.addAll(minus.keySet());
 
         for (Integer y : years) {
-            out.put(y, base.getOrDefault(y, 0.0) - minus.getOrDefault(y, 0.0));
+            out.put(y, base.getOrDefault(y, BigDecimal.ZERO).subtract(minus.getOrDefault(y, BigDecimal.ZERO)));
         }
         return out;
     }
@@ -472,7 +507,7 @@ public class MovementServiceImpl implements MovementService {
     private List<Movement> buildYearlySyntheticMovements(
             String userEmail,
             com.finanzapp.movements.service.domain.MovementType type,
-            Map<Integer, Double> amountByYear,
+            Map<Integer, BigDecimal> amountByYear,
             String description
     ) {
         List<Movement> out = new java.util.ArrayList<>(amountByYear.size());
@@ -481,7 +516,7 @@ public class MovementServiceImpl implements MovementService {
         List<Integer> years = amountByYear.keySet().stream().sorted().toList();
 
         for (Integer year : years) {
-            double amount = amountByYear.getOrDefault(year, 0.0);
+            BigDecimal amount = amountByYear.getOrDefault(year, BigDecimal.ZERO);
 
             out.add(Movement.builder()
                     .id(null)
@@ -503,6 +538,20 @@ public class MovementServiceImpl implements MovementService {
         }
         if (from.getYear() != to.getYear()) {
             throw new IllegalArgumentException("from/to deben estar en el mismo año");
+        }
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("from no puede ser posterior a to");
+        }
+    }
+
+    private Metric parseMetric(String metric) {
+        if (metric == null || metric.isBlank()) {
+            throw new IllegalArgumentException("metric es obligatorio");
+        }
+        try {
+            return Metric.valueOf(metric.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("metric no válido");
         }
     }
 
@@ -528,29 +577,30 @@ public class MovementServiceImpl implements MovementService {
         );
     }
 
-    private Map<Integer, Double> sumByMonth(List<Movement> movements) {
+    private Map<Integer, BigDecimal> sumByMonth(List<Movement> movements) {
         if (movements == null) return Map.of();
 
         return movements.stream()
                 .filter(m -> m.getDate() != null)
                 .collect(java.util.stream.Collectors.groupingBy(
                         m -> m.getDate().getMonthValue(),
-                        java.util.stream.Collectors.summingDouble(m -> m.getAmount() == null ? 0.0 : m.getAmount())
+                        java.util.stream.Collectors.reducing(BigDecimal.ZERO,
+                                m -> m.getAmount() == null ? BigDecimal.ZERO : m.getAmount(), BigDecimal::add)
                 ));
     }
 
-    private Map<Integer, Double> addMaps(Map<Integer, Double> a, Map<Integer, Double> b) {
-        Map<Integer, Double> out = new HashMap<>();
+    private Map<Integer, BigDecimal> addMaps(Map<Integer, BigDecimal> a, Map<Integer, BigDecimal> b) {
+        Map<Integer, BigDecimal> out = new HashMap<>();
         for (int m = 1; m <= 12; m++) {
-            out.put(m, a.getOrDefault(m, 0.0) + b.getOrDefault(m, 0.0));
+            out.put(m, a.getOrDefault(m, BigDecimal.ZERO).add(b.getOrDefault(m, BigDecimal.ZERO)));
         }
         return out;
     }
 
-    private Map<Integer, Double> subtractMaps(Map<Integer, Double> base, Map<Integer, Double> minus) {
-        Map<Integer, Double> out = new HashMap<>();
+    private Map<Integer, BigDecimal> subtractMaps(Map<Integer, BigDecimal> base, Map<Integer, BigDecimal> minus) {
+        Map<Integer, BigDecimal> out = new HashMap<>();
         for (int m = 1; m <= 12; m++) {
-            out.put(m, base.getOrDefault(m, 0.0) - minus.getOrDefault(m, 0.0));
+            out.put(m, base.getOrDefault(m, BigDecimal.ZERO).subtract(minus.getOrDefault(m, BigDecimal.ZERO)));
         }
         return out;
     }
@@ -559,13 +609,13 @@ public class MovementServiceImpl implements MovementService {
             String userEmail,
             com.finanzapp.movements.service.domain.MovementType type,
             int year,
-            Map<Integer, Double> amountByMonth,
+            Map<Integer, BigDecimal> amountByMonth,
             String description
     ) {
         List<Movement> out = new java.util.ArrayList<>(12);
 
         for (int month = 1; month <= 12; month++) {
-            double amount = amountByMonth.getOrDefault(month, 0.0);
+            BigDecimal amount = amountByMonth.getOrDefault(month, BigDecimal.ZERO);
 
             out.add(Movement.builder()
                     .id(null)
@@ -580,18 +630,18 @@ public class MovementServiceImpl implements MovementService {
         return out;
     }
 
-    private Double getIdealPercent(IdealPercentageResponse idealPercentageResponse, Metric metric) {
+    private BigDecimal getIdealPercent(IdealPercentageResponse idealPercentageResponse, Metric metric) {
         if (idealPercentageResponse == null) {
             // fallback defensivo
-            return metric == Metric.BENEFIT ? 100.0 : 0.0;
+            return metric == Metric.BENEFIT ? BigDecimal.valueOf(100) : BigDecimal.ZERO;
         }
 
         return switch (metric) {
-            case BENEFIT -> 100.0;
+            case BENEFIT -> BigDecimal.valueOf(100);
             case SAVINGS -> idealPercentageResponse.getMonthlySavingPercentage();
             case TOTAL_EXPENSES ->
                     idealPercentageResponse.getMonthlyNecessaryExpensesPercentage()
-                            + idealPercentageResponse.getMonthlyDiscretionaryExpensesPercentage();
+                            .add(idealPercentageResponse.getMonthlyDiscretionaryExpensesPercentage());
             case DISCRETIONARY_EXPENSES -> idealPercentageResponse.getMonthlyDiscretionaryExpensesPercentage();
             case NECESSARY_EXPENSES -> idealPercentageResponse.getMonthlyNecessaryExpensesPercentage();
             case INVESTMENTS -> idealPercentageResponse.getMonthlyInvestmentPercentage();

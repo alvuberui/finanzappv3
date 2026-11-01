@@ -11,12 +11,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
 
 @RestController
 @RequestMapping("/tags")
+@Validated
 @Builder
 public class TagController {
 
@@ -26,7 +30,7 @@ public class TagController {
 
 
     @PostMapping()
-    public ResponseEntity<TagDto> createMovement(@RequestBody CreateTagRequestDto createTagRequestDto, @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<TagDto> createMovement(@Valid @RequestBody CreateTagRequestDto createTagRequestDto, @AuthenticationPrincipal Jwt jwt) {
         String email = jwt.getClaimAsString("email");
         TagDto response = tagMapper.toTagDto(
                 tagService.createTag( tagMapper.toCreateTagRequest(createTagRequestDto), email)
@@ -68,7 +72,7 @@ public class TagController {
 
     @PostMapping("/batch")
     public ResponseEntity<List<TagDto>> getTagsByIdsAndUserEmail(
-            @RequestBody List<Long> tagIds,
+            @RequestBody @Size(max = 200, message = "No se pueden solicitar más de 200 etiquetas") List<Long> tagIds,
             @AuthenticationPrincipal Jwt jwt
     ) {
         String email = jwt.getClaimAsString("email");
